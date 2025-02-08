@@ -127,6 +127,27 @@ class MainFrame(tk.Frame):
         revision_button.place(relx=0.3, rely=0.45, anchor='center')
         writing_button.place(relx=0.7, rely=0.45, anchor='center')
 
+class CardManager:
+    def __init__(self):
+        conn = sqlite3.connect("language_cards.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT ru, eng FROM cards")
+        self.cards = cursor.fetchall().__iter__()
+        conn.close()
+        self.current_card = self.cards.__next__()
+
+    def check_input(self, inpt: str):
+        if inpt == self.current_card[1]:
+            return True
+        else:
+            return False
+
+    def next_card(self):
+        try:
+            self.current_card = self.cards.__next__()
+            return True
+        except StopIteration:
+            return False
 
 class TkinterApp(tk.Tk):
 
@@ -164,27 +185,7 @@ class TkinterApp(tk.Tk):
             sys.exit()
 
 
-class CardManager:
-    def __init__(self):
-        conn = sqlite3.connect("language_cards.db")
-        cursor = conn.cursor()
-        cursor.execute("SELECT ru, eng FROM cards")
-        self.cards = cursor.fetchall().__iter__()
-        conn.close()
-        self.current_card = self.cards.__next__()
 
-    def check_input(self, inpt: str):
-        if inpt == self.current_card[1]:
-            return True
-        else:
-            return False
-
-    def next_card(self):
-        try:
-            self.current_card = self.cards.__next__()
-            return True
-        except StopIteration:
-            return False
 
 
 if __name__ == '__main__':
