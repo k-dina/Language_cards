@@ -2,7 +2,7 @@ import sys
 import tkinter as tk
 import tkinter.messagebox as mb
 import sqlite3
-from tools import update_data
+from tools import update_data, FILE_PATH
 
 
 class WritingFrame(tk.Frame):
@@ -66,6 +66,8 @@ class WritingFrame(tk.Frame):
         self.wrong_answers = 0
         self.inputtxt.delete(1.0, 'end')
         self.answer_label.config(text="")
+        self.check_button.config(state=tk.ACTIVE)
+        self.next_task_button.config(state=tk.DISABLED)
 
 
 class RevisionFrame(tk.Frame):
@@ -119,17 +121,18 @@ class MainFrame(tk.Frame):
 
         # widgets
         label = tk.Label(self, text='Выбери режим:', font=('Arial', 12))
-        revision_button = tk.Button(self, text='Повторять слова', command=lambda: controller._start_game('revision'))
-        writing_button = tk.Button(self, text='Писать', command=lambda: controller._start_game('writing'))
+        revision_button = tk.Button(self, text='Повторять слова', command=lambda: controller.start_game('revision'))
+        writing_button = tk.Button(self, text='Писать', command=lambda: controller.start_game('writing'))
 
         # widget placement
         label.place(relx=0.5, rely=0.1, anchor='center')
         revision_button.place(relx=0.3, rely=0.45, anchor='center')
         writing_button.place(relx=0.7, rely=0.45, anchor='center')
 
+
 class CardManager:
     def __init__(self):
-        conn = sqlite3.connect("language_cards.db")
+        conn = sqlite3.connect(FILE_PATH)
         cursor = conn.cursor()
         cursor.execute("SELECT ru, eng FROM cards")
         self.cards = cursor.fetchall().__iter__()
@@ -149,6 +152,7 @@ class CardManager:
         except StopIteration:
             return False
 
+
 class TkinterApp(tk.Tk):
 
     def __init__(self, *args, **kwargs):
@@ -156,22 +160,20 @@ class TkinterApp(tk.Tk):
         tk.Tk.__init__(self, *args, **kwargs)
         self.geometry('800x600')
         self.title('English learning game')
-
         self.frames = {}
 
         for F in (WritingFrame, RevisionFrame, MainFrame):
             frame = F(self, self)
             self.frames[F] = frame
-        self.current_frame = MainFrame
-        self.frames[self.current_frame].pack(side='top', fill='both', expand=True)
+        self.current_frame = self.frames[MainFrame]
+        self.current_frame.pack(side='top', fill='both', expand=True)
 
     def show_frame(self, new_frame):
-        self.frames[self.current_frame].forget()
-        self.current_frame = new_frame
-        frame = self.frames[new_frame]
-        frame.pack(side='top', fill='both', expand=True)
+        self.current_frame.forget()
+        self.current_frame = self.frames[new_frame]
+        self.current_frame.pack(side='top', fill='both', expand=True)
 
-    def _start_game(self, mode):
+    def start_game(self, mode):
         cards = CardManager()
         if mode == 'revision':
             self.frames[RevisionFrame].card_manager = cards
@@ -183,9 +185,6 @@ class TkinterApp(tk.Tk):
             self.show_frame(WritingFrame)
         else:
             sys.exit()
-
-
-
 
 
 if __name__ == '__main__':
