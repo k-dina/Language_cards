@@ -21,6 +21,7 @@ class WritingFrame(tk.Frame):
         self.answer_label = tk.Label(self, text='')
         self.next_task_button = tk.Button(self, text='Следующее задание', command=lambda: self._next_task(parent), state=tk.DISABLED)
         self.check_button = tk.Button(self, text='Проверить ответ', command=lambda: self._check_answer())
+        self.progress = ttk.Progressbar(self, orient="horizontal", length=300, mode="determinate")
 
         task_label = tk.Label(self, text='переведи на английский и запиши ответ:')
         quit_button = tk.Button(self, text='Закончить тренировку', command=lambda: self._quit_game(parent))
@@ -33,6 +34,7 @@ class WritingFrame(tk.Frame):
         self.next_task_button.place(relx=0.5, rely=0.45, anchor='center')
         quit_button.place(relx=0.75, rely=0.45, anchor='center')
         self.answer_label.place(relx=0.5, rely=0.75, anchor='center')
+        self.progress.place(relx=0.5, rely=0.85, anchor="center")
 
     def _check_answer(self):
         inp = self.inputtxt.get(1.0, 'end-1c')
@@ -44,10 +46,12 @@ class WritingFrame(tk.Frame):
         else:
             self.answer_label.config(text='Ой! Правильный ответ: ' + self.card_manager.current_card[1] + '.', fg='red')
             self.wrong_answers += 1
+
         self.next_task_button.config(state=tk.ACTIVE)
         self.check_button.config(state=tk.DISABLED)
 
     def _next_task(self, parent):
+        self._update_progress()
         if self.card_manager.next_card():
             self.inputtxt.delete(1.0, 'end')
             self.text_label.config(text=self.card_manager.current_card[0])
@@ -60,6 +64,10 @@ class WritingFrame(tk.Frame):
     def _quit_game(self, parent):
         mb.showinfo('Тренировка закончена', f'Ты ответил правильно на {self.right_answers}/{self.right_answers + self.wrong_answers} вопросов!')
         parent.start_app()
+
+    def _update_progress(self):
+        progress = (self.right_answers + self.wrong_answers) / self.card_manager.len * 100
+        self.progress["value"] = progress
 
     def clear(self):
         self.right_answers = 0
@@ -75,12 +83,14 @@ class RevisionFrame(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         self.card_manager = card_manager
+        self.answers = 0
 
         # widgets
         self.text_label = tk.Label(self, text="")
         self.hint_label = tk.Label(self, text="")
         self.next_task_button = tk.Button(self, text='Следующее задание', command=lambda: self._next_task(parent))
         self.hint_button = tk.Button(self, text="Подсказка", command=lambda: self._show_hint())
+        self.progress = ttk.Progressbar(self, orient="horizontal", length=300, mode="determinate")
 
         task_label = tk.Label(self, text='переведи на английский:')
         quit_button = tk.Button(self, text='Закончить тренировку', command=lambda: self._quit_game(parent))
@@ -92,11 +102,14 @@ class RevisionFrame(tk.Frame):
         self.hint_button.place(relx=0.25, rely=0.45, anchor='center')
         self.next_task_button.place(relx=0.5, rely=0.45, anchor='center')
         quit_button.place(relx=0.75, rely=0.45, anchor='center')
+        self.progress.place(relx=0.5, rely=0.85, anchor="center")
 
     def _next_task(self, parent):
+        self._update_progress()
         if self.card_manager.next_card():
             self.text_label.config(text=self.card_manager.current_card[0])
             self.hint_label.config(text="")
+            self.answers += 1
         else:
             self._quit_game(parent)
 
@@ -105,6 +118,10 @@ class RevisionFrame(tk.Frame):
         masked_hint = hint[0] + '*' * (len(hint) - 1)
         self.hint_label.config(text=masked_hint)
 
+    def _update_progress(self):
+        progress = self.answers / self.card_manager.len * 100
+        self.progress["value"] = progress
+
     @staticmethod
     def _quit_game(parent):
         mb.showinfo('Тренировка закончена', f'Ты молодец!')
@@ -112,6 +129,7 @@ class RevisionFrame(tk.Frame):
 
     def clear(self):
         self.hint_label.config(text="")
+        self.answers = 0
         self.forget()
 
 

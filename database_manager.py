@@ -25,6 +25,7 @@ class CardManager:
             cursor.execute(query)
         self.cards = cursor.fetchall()
         random.shuffle(self.cards)
+        self.len = len(self.cards)
         self.cards = self.cards.__iter__()
         conn.close()
         self.current_card = self.cards.__next__()
