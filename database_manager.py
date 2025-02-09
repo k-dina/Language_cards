@@ -24,10 +24,10 @@ class CardManager:
             query = f"SELECT ru, eng FROM cards"
             cursor.execute(query)
         self.cards = cursor.fetchall()
+        conn.close()
         random.shuffle(self.cards)
         self.len = len(self.cards)
         self.cards = self.cards.__iter__()
-        conn.close()
         self.current_card = self.cards.__next__()
 
     def check_input(self, inpt: str):
