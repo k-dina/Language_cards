@@ -10,6 +10,7 @@ from database_manager import CardManager, TopicManager
 class WritingFrame(tk.Frame):
     def __init__(self, parent, card_manager=None):
         tk.Frame.__init__(self, parent)
+        self.answer = False
         self.right_answers = 0
         self.wrong_answers = 0
 
@@ -42,15 +43,20 @@ class WritingFrame(tk.Frame):
         inp = inp.lower()
         if self.card_manager.check_input(inp):
             self.answer_label.config(text='Молодец! Ты ответил правильно: ' + inp, fg='green')
-            self.right_answers += 1
+            self.answer = True
+            #self.right_answers += 1
         else:
             self.answer_label.config(text='Ой! Правильный ответ: ' + self.card_manager.current_card[1] + '.', fg='red')
-            self.wrong_answers += 1
+            #self.wrong_answers += 1
 
         self.next_task_button.config(state=tk.ACTIVE)
-        self.check_button.config(state=tk.DISABLED)
+        #self.check_button.config(state=tk.DISABLED)
 
     def _next_task(self, parent):
+        if self.answer:
+            self.right_answers += 1
+        else:
+            self.wrong_answers += 1
         self._update_progress()
         if self.card_manager.next_card():
             self.inputtxt.delete(1.0, 'end')
@@ -76,6 +82,8 @@ class WritingFrame(tk.Frame):
         self.answer_label.config(text="")
         self.check_button.config(state=tk.ACTIVE)
         self.next_task_button.config(state=tk.DISABLED)
+        self.answer = False
+        self.progress["value"] = 0
 
 
 class RevisionFrame(tk.Frame):
@@ -130,7 +138,7 @@ class RevisionFrame(tk.Frame):
     def clear(self):
         self.hint_label.config(text="")
         self.answers = 0
-        self.forget()
+        self.progress["value"] = 0
 
 
 class TopicSelectionFrame(tk.Frame):
